@@ -127,3 +127,5 @@ export const notificationsApi = {
     markAsRead: (id: string) => apiClient.put(`/notifications/${id}/read`),
     markAllAsRead: () => apiClient.put('/notifications/read-all'),
 };
+
+export default apiClient;

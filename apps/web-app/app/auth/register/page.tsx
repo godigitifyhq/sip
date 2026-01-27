@@ -1,163 +1,202 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { authApi } from '@/lib/api';
-import { useAuthStore } from '@/lib/store';
+import { useAuth } from '@/lib/auth-context';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Alert } from '@/components/ui/Alert';
+import { FullPageLoader } from '@/components/ui/Loading';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const { setAuth } = useAuthStore();
-
-  const [role, setRole] = useState(searchParams.get('role') || 'student');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const { register, user, loading: authLoading } = useAuth();
+  
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    role: 'STUDENT' as 'STUDENT' | 'EMPLOYER',
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [generalError, setGeneralError] = useState('');
+
+  useEffect(() => {
+    if (user && !authLoading) {
+      router.push('/');
+    }
+  }, [user, authLoading, router]);
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+      newErrors.password = 'Password must include uppercase, lowercase, and number';
+    }
+    
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters');
-      return;
-    }
-
+    setGeneralError('');
+    
+    if (!validate()) return;
+    
     setLoading(true);
-
+    
     try {
-      const { data } = await authApi.register({
-        email,
-        password,
-        role: role.toUpperCase(),
-      });
-
-      setAuth(data.user, data.accessToken, data.refreshToken);
-
-      // Redirect to appropriate dashboard
-      if (role === 'student') {
-        router.push('/student/dashboard');
-      } else {
-        router.push('/employer/dashboard');
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed');
+      await register(formData.email, formData.password, formData.role);
+    } catch (error: any) {
+      setGeneralError(error.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  if (authLoading) {
+    return <FullPageLoader />;
+  }
+
   return (
-    <div className="min-h-screen bg-light-bg flex items-center justify-center px-6">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-primary">Create Account</h1>
-            <p className="text-gray-600 mt-2">Join SIP today</p>
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-[var(--background)] px-4 py-12">
+      <div className="w-full max-w-md">
+        {/* Logo/Brand */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-[var(--primary)] mb-2">SIP</h1>
+          <p className="text-[var(--text-secondary)]">Student Internship Portal</p>
+        </div>
 
-          {/* Role Selection */}
-          <div className="flex gap-4 mb-6">
-            <button
-              type="button"
-              onClick={() => setRole('student')}
-              className={`flex-1 py-3 rounded-lg font-semibold transition ${
-                role === 'student'
-                  ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Student
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole('employer')}
-              className={`flex-1 py-3 rounded-lg font-semibold transition ${
-                role === 'employer'
-                  ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Employer
-            </button>
-          </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-              {error}
-            </div>
+        {/* Register Card */}
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <h2 className="text-2xl font-semibold text-[var(--primary)] mb-6">Create Account</h2>
+          
+          {generalError && (
+            <Alert variant="error" className="mb-4">
+              {generalError}
+            </Alert>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Role Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
+              <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                I am a
               </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="you@example.com"
-              />
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, role: 'STUDENT' })}
+                  className={`p-4 rounded-lg border-2 transition-all ${
+                    formData.role === 'STUDENT'
+                      ? 'border-[var(--primary)] bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  disabled={loading}
+                >
+                  <div className="text-2xl mb-1">🎓</div>
+                  <div className="font-medium text-sm">Student</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, role: 'EMPLOYER' })}
+                  className={`p-4 rounded-lg border-2 transition-all ${
+                    formData.role === 'EMPLOYER'
+                      ? 'border-[var(--primary)] bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  disabled={loading}
+                >
+                  <div className="text-2xl mb-1">🏢</div>
+                  <div className="font-medium text-sm">Employer</div>
+                </button>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={8}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="••••••••"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                minLength={8}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="••••••••"
-              />
-            </div>
-
-            <button
-              type="submit"
+            <Input
+              label="Email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              error={errors.email}
+              placeholder="you@example.com"
               disabled={loading}
-              className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary/90 transition disabled:opacity-50"
+            />
+
+            <Input
+              label="Password"
+              type="password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              error={errors.password}
+              placeholder="••••••••"
+              helperText="Min. 8 characters with uppercase, lowercase, and number"
+              disabled={loading}
+            />
+
+            <Input
+              label="Confirm Password"
+              type="password"
+              value={formData.confirmPassword}
+              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+              error={errors.confirmPassword}
+              placeholder="••••••••"
+              disabled={loading}
+            />
+
+            <div className="flex items-start">
+              <input
+                type="checkbox"
+                id="terms"
+                required
+                className="mt-1 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]"
+              />
+              <label htmlFor="terms" className="ml-2 text-sm text-[var(--text-secondary)]">
+                I agree to the <Link href="/terms" className="text-[var(--accent)] hover:text-[var(--accent-hover)]">Terms of Service</Link> and <Link href="/privacy" className="text-[var(--accent)] hover:text-[var(--accent-hover)]">Privacy Policy</Link>
+              </label>
+            </div>
+
+            <Button
+              type="submit"
+              variant="primary"
+              fullWidth
+              loading={loading}
+              disabled={loading}
             >
-              {loading ? 'Creating account...' : 'Create Account'}
-            </button>
+              Create Account
+            </Button>
           </form>
 
-          <p className="text-center text-gray-600 mt-6">
-            Already have an account?{' '}
-            <Link href="/auth/login" className="text-primary font-semibold hover:underline">
-              Login
+          {/* Login Link */}
+          <div className="mt-6 text-center text-sm">
+            <span className="text-[var(--text-secondary)]">Already have an account? </span>
+            <Link href="/auth/login" className="text-[var(--accent)] hover:text-[var(--accent-hover)] font-medium">
+              Sign in
             </Link>
-          </p>
+          </div>
         </div>
+
+        {/* Footer */}
+        <p className="text-center text-xs text-[var(--text-secondary)] mt-8">
+          Protected by industry-standard encryption and security measures
+        </p>
       </div>
     </div>
   );

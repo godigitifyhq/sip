@@ -2,6 +2,9 @@
     "name": "api-service",
     "version": "1.0.0",
     "description": "SIP NestJS Backend API",
+    "prisma": {
+        "seed": "ts-node prisma/seed.ts"
+    },
     "scripts": {
         "prebuild": "rimraf dist",
         "build": "nest build",

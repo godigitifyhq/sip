@@ -1,105 +1,162 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { authApi } from '@/lib/api';
-import { useAuthStore } from '@/lib/store';
+import { useAuth } from '@/lib/auth-context';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Alert } from '@/components/ui/Alert';
+import { FullPageLoader } from '@/components/ui/Loading';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setAuth } = useAuthStore();
-
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const searchParams = useSearchParams();
+  const { login, user, loading: authLoading } = useAuth();
+  
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [generalError, setGeneralError] = useState('');
+  
+  const redirect = searchParams.get('redirect');
+
+  useEffect(() => {
+    if (user && !authLoading) {
+      router.push(redirect || '/');
+    }
+  }, [user, authLoading, redirect, router]);
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setGeneralError('');
+    
+    if (!validate()) return;
+    
     setLoading(true);
-
+    
     try {
-      const { data } = await authApi.login({ email, password });
-
-      setAuth(data.user, data.accessToken, data.refreshToken);
-
-      // Redirect based on role
-      if (data.user.role === 'STUDENT') {
-        router.push('/student/dashboard');
-      } else if (data.user.role === 'EMPLOYER') {
-        router.push('/employer/dashboard');
-      } else if (data.user.role === 'ADMIN') {
-        router.push('/admin/dashboard');
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed');
+      await login(formData.email, formData.password);
+    } catch (error: any) {
+      setGeneralError(error.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-light-bg flex items-center justify-center px-6">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-primary">Welcome Back</h1>
-            <p className="text-gray-600 mt-2">Login to your SIP account</p>
-          </div>
+  if (authLoading) {
+    return <FullPageLoader />;
+  }
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-              {error}
-            </div>
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[var(--background)] px-4">
+      <div className="w-full max-w-md">
+        {/* Logo/Brand */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-[var(--primary)] mb-2">SIP</h1>
+          <p className="text-[var(--text-secondary)]">Student Internship Portal</p>
+        </div>
+
+        {/* Login Card */}
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <h2 className="text-2xl font-semibold text-[var(--primary)] mb-6">Welcome Back</h2>
+          
+          {generalError && (
+            <Alert variant="error" className="mb-4">
+              {generalError}
+            </Alert>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="you@example.com"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="••••••••"
-              />
-            </div>
-
-            <button
-              type="submit"
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <Input
+              label="Email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              error={errors.email}
+              placeholder="you@example.com"
               disabled={loading}
-              className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary/90 transition disabled:opacity-50"
+            />
+
+            <Input
+              label="Password"
+              type="password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              error={errors.password}
+              placeholder="••••••••"
+              disabled={loading}
+            />
+
+            <div className="flex items-center justify-between text-sm">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  className="rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]"
+                />
+                <span className="ml-2 text-[var(--text-secondary)]">Remember me</span>
+              </label>
+              <Link href="/auth/forgot-password" className="text-[var(--accent)] hover:text-[var(--accent-hover)]">
+                Forgot password?
+              </Link>
+            </div>
+
+            <Button
+              type="submit"
+              variant="primary"
+              fullWidth
+              loading={loading}
+              disabled={loading}
             >
-              {loading ? 'Logging in...' : 'Login'}
-            </button>
+              Sign In
+            </Button>
           </form>
 
-          <p className="text-center text-gray-600 mt-6">
-            Don't have an account?{' '}
-            <Link href="/auth/register" className="text-primary font-semibold hover:underline">
+          {/* Test Accounts Info */}
+          <Alert variant="info" className="mt-6">
+            <p className="text-sm font-medium mb-2">Test Accounts:</p>
+            <div className="text-xs space-y-1">
+              <p>👨‍💼 Admin: admin@sip.com / Admin@123</p>
+              <p>🏢 Employer: employer@example.com / Employer@123</p>
+              <p>🎓 Student: student@example.com / Student@123</p>
+            </div>
+          </Alert>
+
+          {/* Register Link */}
+          <div className="mt-6 text-center text-sm">
+            <span className="text-[var(--text-secondary)]">Don't have an account? </span>
+            <Link href="/auth/register" className="text-[var(--accent)] hover:text-[var(--accent-hover)] font-medium">
               Sign up
             </Link>
-          </p>
+          </div>
         </div>
+
+        {/* Footer */}
+        <p className="text-center text-xs text-[var(--text-secondary)] mt-8">
+          By signing in, you agree to our Terms of Service and Privacy Policy
+        </p>
       </div>
     </div>
   );
