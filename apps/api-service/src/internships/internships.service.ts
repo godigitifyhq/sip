@@ -170,7 +170,7 @@ export class InternshipsService {
                     },
                 },
             },
-            orderBy: { createdAt: 'desc' },
+            orderBy: { appliedAt: 'desc' },
         });
     }
 }

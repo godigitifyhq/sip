@@ -86,19 +86,6 @@ export class InternshipsController {
         return this.internshipsService.publish(id, user.userId);
     }
 
-    @Patch(':id')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('EMPLOYER')
-    @ApiBearerAuth()
-    @ApiOperation({ summary: 'Update internship' })
-    async update(
-        @Param('id') id: string,
-        @Body() updateData: any,
-        @CurrentUser() user: any
-    ) {
-        return this.internshipsService.update(id, updateData, user.userId);
-    }
-
     @Put(':id/close')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('EMPLOYER')
