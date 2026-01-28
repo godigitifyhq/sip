@@ -19,7 +19,7 @@ export default function AdminInternshipsPage() {
 }
 
 function AdminInternshipsContent() {
-  const [internships, setInternships] = useState<any[]>([]);
+  const [allInternships, setAllInternships] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('ALL');
@@ -27,46 +27,43 @@ function AdminInternshipsContent() {
 
   useEffect(() => {
     loadInternships();
-  }, [filter]);
+  }, []);
 
   const loadInternships = async () => {
     try {
       setLoading(true);
       setError(null);
-      const params: any = {};
-      if (filter !== 'ALL') {
-        params.status = filter;
-      }
-      const response = await adminApi.internships.getAll(params).catch(() => ({ data: { data: [] } }));
+      const response = await adminApi.internships.getAll().catch(() => ({ data: { data: [] } }));
       const data = response?.data;
       const internshipsArray = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : (Array.isArray(data?.internships) ? data.internships : []));
-      setInternships(internshipsArray);
+      setAllInternships(internshipsArray);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load internships');
-      setInternships([]);
+      setAllInternships([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Only filter by search query client-side, status filtering is done server-side
-  const filteredInternships = Array.isArray(internships) 
-    ? internships.filter(internship => {
+  // Filter by status and search query client-side
+  const filteredInternships = Array.isArray(allInternships) 
+    ? allInternships.filter(internship => {
+        const matchesStatus = filter === 'ALL' || internship.status === filter;
         const matchesSearch = 
           !searchQuery ||
           internship.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           internship.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           internship.location?.toLowerCase().includes(searchQuery.toLowerCase());
 
-        return matchesSearch;
+        return matchesStatus && matchesSearch;
       })
     : [];
 
   const stats = {
-    total: (internships || []).length,
-    published: (internships || []).filter(i => i.status === 'PUBLISHED').length,
-    draft: (internships || []).filter(i => i.status === 'DRAFT').length,
-    closed: (internships || []).filter(i => i.status === 'CLOSED').length,
+    total: (allInternships || []).length,
+    published: (allInternships || []).filter(i => i.status === 'PUBLISHED').length,
+    draft: (allInternships || []).filter(i => i.status === 'DRAFT').length,
+    closed: (allInternships || []).filter(i => i.status === 'CLOSED').length,
   };
 
   const statusColors: Record<string, string> = {

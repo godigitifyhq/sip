@@ -23,24 +23,20 @@ export default function AdminUsersPage() {
 
 function AdminUsersContent() {
   const router = useRouter();
-  const [users, setUsers] = useState<any[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadUsers();
-  }, [filter]);
+  }, []);
 
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const params: any = {};
-      if (filter !== 'ALL') {
-        params.role = filter;
-      }
-      const { data } = await adminApi.users.getAll(params).catch(() => ({ data: { data: [] } }));
-      setUsers(data.data || data || []);
+      const { data } = await adminApi.users.getAll().catch(() => ({ data: { data: [] } }));
+      setAllUsers(data.data || data || []);
     } catch (error) {
       console.error('Failed to load users:', error);
     } finally {
@@ -48,20 +44,21 @@ function AdminUsersContent() {
     }
   };
 
-  // Only filter by search query client-side, role filtering is done server-side
-  const filteredUsers = (users || []).filter((user: any) => {
+  // Filter by role and search query client-side
+  const filteredUsers = (allUsers || []).filter((user: any) => {
+    const matchesRole = filter === 'ALL' || user.role === filter;
     const matchesSearch = !searchQuery ||
       user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.studentProfile?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.companyProfile?.companyName?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+    return matchesRole && matchesSearch;
   });
 
   const stats = {
-    total: users.length,
-    students: users.filter((u: any) => u.role === 'STUDENT').length,
-    employers: users.filter((u: any) => u.role === 'EMPLOYER').length,
-    admins: users.filter((u: any) => u.role === 'ADMIN').length,
+    total: allUsers.length,
+    students: allUsers.filter((u: any) => u.role === 'STUDENT').length,
+    employers: allUsers.filter((u: any) => u.role === 'EMPLOYER').length,
+    admins: allUsers.filter((u: any) => u.role === 'ADMIN').length,
   };
 
   if (loading) {

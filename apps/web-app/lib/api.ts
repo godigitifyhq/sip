@@ -179,6 +179,7 @@ export const adminApi = {
     },
     kyc: {
         getAll: (params?: any) => apiClient.get('/admin/kyc', { params }),
+        review: (id: string, data: any) => apiClient.put(`/kyc/review/${id}`, data),
     },
 };
 

@@ -24,28 +24,24 @@ export default function AdminKYCPage() {
 function AdminKYCContent() {
   const router = useRouter();
   const toast = useToast();
-  const [kycList, setKycList] = useState<any[]>([]);
+  const [allKycList, setAllKycList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('PENDING');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
     loadKYC();
-  }, [filter]);
+  }, []);
 
   const loadKYC = async () => {
     try {
       setLoading(true);
-      const params: any = {};
-      if (filter !== 'ALL') {
-        params.status = filter;
-      }
-      const { data } = await adminApi.kyc.getAll(params).catch(() => ({ data: [] }));
+      const { data } = await adminApi.kyc.getAll().catch(() => ({ data: [] }));
       const kycData = Array.isArray(data) ? data : (data.data || []);
-      setKycList(kycData);
+      setAllKycList(kycData);
     } catch (error) {
       console.error('Failed to load KYC:', error);
-      setKycList([]);
+      setAllKycList([]);
       toast.error('Failed to load KYC records', 'Error');
     } finally {
       setLoading(false);
@@ -57,10 +53,10 @@ function AdminKYCContent() {
       setActionLoading(kycId);
       
       if (action === 'approve') {
-        await apiClient.put(`/kyc/review/${kycId}`, { approved: true });
+        await adminApi.kyc.review(kycId, { approved: true });
         
         // Update the KYC status in local state
-        setKycList(prevList => 
+        setAllKycList(prevList => 
           prevList.map(kyc => 
             kyc.id === kycId 
               ? { ...kyc, status: 'APPROVED', reviewedAt: new Date().toISOString() }
@@ -76,10 +72,10 @@ function AdminKYCContent() {
           return;
         }
         
-        await apiClient.put(`/kyc/review/${kycId}`, { approved: false, reason });
+        await adminApi.kyc.review(kycId, { approved: false, reason });
         
         // Update the KYC status in local state
-        setKycList(prevList => 
+        setAllKycList(prevList => 
           prevList.map(kyc => 
             kyc.id === kycId 
               ? { ...kyc, status: 'REJECTED', rejectionReason: reason, reviewedAt: new Date().toISOString() }
@@ -97,17 +93,17 @@ function AdminKYCContent() {
     }
   };
 
-  const filteredKycList = kycList.filter((k: any) => {
+  const filteredKycList = allKycList.filter((k: any) => {
     if (filter === 'ALL') return true;
     if (filter === 'PENDING') return k.status === 'PENDING' || k.status === 'UNDER_REVIEW';
     return k.status === filter;
   });
 
   const stats = {
-    total: kycList.length,
-    pending: kycList.filter((k: any) => k.status === 'PENDING' || k.status === 'UNDER_REVIEW').length,
-    approved: kycList.filter((k: any) => k.status === 'APPROVED').length,
-    rejected: kycList.filter((k: any) => k.status === 'REJECTED').length,
+    total: allKycList.length,
+    pending: allKycList.filter((k: any) => k.status === 'PENDING' || k.status === 'UNDER_REVIEW').length,
+    approved: allKycList.filter((k: any) => k.status === 'APPROVED').length,
+    rejected: allKycList.filter((k: any) => k.status === 'REJECTED').length,
   };
 
   if (loading) {
