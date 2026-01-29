@@ -27,6 +27,7 @@ function AdminUsersContent() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
     loadUsers();
@@ -41,6 +42,49 @@ function AdminUsersContent() {
       console.error('Failed to load users:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSuspendUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to suspend this user?')) return;
+    
+    try {
+      setActionLoading(userId);
+      await adminApi.users.suspend(userId);
+      await loadUsers();
+    } catch (error: any) {
+      console.error('Failed to suspend user:', error);
+      alert(error.response?.data?.message || 'Failed to suspend user');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleActivateUser = async (userId: string) => {
+    try {
+      setActionLoading(userId);
+      await adminApi.users.activate(userId);
+      await loadUsers();
+    } catch (error: any) {
+      console.error('Failed to activate user:', error);
+      alert(error.response?.data?.message || 'Failed to activate user');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
+    
+    try {
+      setActionLoading(userId);
+      await adminApi.users.delete(userId);
+      await loadUsers();
+    } catch (error: any) {
+      console.error('Failed to delete user:', error);
+      alert(error.response?.data?.message || 'Failed to delete user');
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -177,6 +221,7 @@ function AdminUsersContent() {
                     <th className="text-left p-4 font-semibold text-gray-700">Role</th>
                     <th className="text-left p-4 font-semibold text-gray-700">KYC Status</th>
                     <th className="text-left p-4 font-semibold text-gray-700">Joined</th>
+                    <th className="text-left p-4 font-semibold text-gray-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -208,6 +253,44 @@ function AdminUsersContent() {
                         <StatusBadge status={user.kycStatus || 'PENDING'} size="sm" />
                       </td>
                       <td className="p-4 text-gray-700">{new Date(user.createdAt).toLocaleDateString()}</td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => router.push(`/admin/users/${user.id}`)}
+                          >
+                            View
+                          </Button>
+                          {user.status === 'SUSPENDED' ? (
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              onClick={() => handleActivateUser(user.id)}
+                              disabled={actionLoading === user.id}
+                            >
+                              Activate
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleSuspendUser(user.id)}
+                              disabled={actionLoading === user.id}
+                            >
+                              Suspend
+                            </Button>
+                          )}
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => handleDeleteUser(user.id)}
+                            disabled={actionLoading === user.id}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

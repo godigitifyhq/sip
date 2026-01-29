@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/lib/auth-context';
-import { useEmployerInternships, useApplications, useNotifications } from '@/lib/hooks';
+import { useEmployerInternships, useEmployerApplications, useNotifications } from '@/lib/hooks';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/Loading';
@@ -27,7 +27,7 @@ function DashboardContent() {
   const router = useRouter();
   const { user } = useAuth();
   const { data: internships, loading: internshipsLoading } = useEmployerInternships();
-  const { data: applications, loading: applicationsLoading } = useApplications();
+  const { data: applications, loading: applicationsLoading } = useEmployerApplications();
   const { unreadCount } = useNotifications();
 
   // Calculate comprehensive stats

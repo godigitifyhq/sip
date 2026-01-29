@@ -73,6 +73,7 @@ export function useInternships(filters?: {
 export { useEmployerInternships } from './hooks/useEmployerInternships';
 
 // Applications hook with real-time updates
+// For students: fetches their applications
 export function useApplications() {
     const [applications, setApplications] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -108,7 +109,46 @@ export function useApplications() {
         };
     }, []);
 
-    return { applications, loading, error, refetch: fetchApplications };
+    return { data: applications, loading, error, refetch: fetchApplications };
+}
+
+// Employer Applications hook - fetches all applications to employer's internships
+export function useEmployerApplications() {
+    const [applications, setApplications] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchApplications = async () => {
+        setLoading(true);
+        try {
+            const response = await apiClient.get('/applications/employer/my-applications');
+            setApplications(response.data);
+            setError(null);
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Failed to fetch applications');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchApplications();
+
+        // Subscribe to real-time updates
+        const handleApplicationUpdate = (data: any) => {
+            setApplications((prev) =>
+                prev.map((app) => (app.id === data.id ? { ...app, ...data } : app)),
+            );
+        };
+
+        wsService.onApplicationUpdate(handleApplicationUpdate);
+
+        return () => {
+            wsService.off('application:update', handleApplicationUpdate);
+        };
+    }, []);
+
+    return { data: applications, loading, error, refetch: fetchApplications };
 }
 
 // Messages hook with real-time updates

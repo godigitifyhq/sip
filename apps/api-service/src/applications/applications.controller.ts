@@ -33,6 +33,14 @@ export class ApplicationsController {
         return this.applicationsService.findStudentApplications(user.userId);
     }
 
+    @Get('employer/my-applications')
+    @UseGuards(RolesGuard)
+    @Roles('EMPLOYER')
+    @ApiOperation({ summary: 'Get all applications to employer internships' })
+    async getEmployerApplications(@CurrentUser() user: any) {
+        return this.applicationsService.findEmployerApplications(user.userId);
+    }
+
     @Get('internship/:internshipId')
     @UseGuards(RolesGuard)
     @Roles('EMPLOYER')

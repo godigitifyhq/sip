@@ -77,6 +77,33 @@ export class ApplicationsService {
         });
     }
 
+    async findEmployerApplications(employerId: string) {
+        return this.prisma.application.findMany({
+            where: {
+                internship: {
+                    employerId,
+                },
+            },
+            include: {
+                student: {
+                    select: {
+                        id: true,
+                        email: true,
+                        studentProfile: true,
+                    },
+                },
+                internship: {
+                    select: {
+                        id: true,
+                        title: true,
+                        status: true,
+                    },
+                },
+            },
+            orderBy: { appliedAt: 'desc' },
+        });
+    }
+
     async findInternshipApplications(internshipId: string) {
         return this.prisma.application.findMany({
             where: { internshipId },
@@ -128,8 +155,8 @@ export class ApplicationsService {
         }
 
         // Verify user has access (student who applied or employer who posted internship)
-        const hasAccess = 
-            application.studentId === userId || 
+        const hasAccess =
+            application.studentId === userId ||
             application.internship.employerId === userId;
 
         if (!hasAccess) {

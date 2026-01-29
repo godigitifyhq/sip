@@ -342,6 +342,45 @@ function InternshipDetailContent() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-3">
+                  <Link href={`/employer/internships/${id}/kanban`}>
+                    <Button variant="primary">
+                      📋 Kanban Board
+                    </Button>
+                  </Link>
+                  <Link href={`/employer/internships/${id}/edit`}>
+                    <Button variant="outline">
+                      ✏️ Edit Internship
+                    </Button>
+                  </Link>
+                  {internship.status === 'DRAFT' && (
+                    <Button
+                      variant="primary"
+                      onClick={handlePublish}
+                      disabled={actionLoading}
+                    >
+                      Publish
+                    </Button>
+                  )}
+                  {internship.status === 'PUBLISHED' && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowCloseModal(true)}
+                      disabled={actionLoading}
+                    >
+                      Close Internship
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Overview */}
             <Card>
               <CardHeader>

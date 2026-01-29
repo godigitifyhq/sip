@@ -1,6 +1,6 @@
 'use client';
 
-import { useApplications } from '@/lib/hooks';
+import { useEmployerApplications } from '@/lib/hooks';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -21,7 +21,7 @@ export default function EmployerApplicationsPage() {
 
 function EmployerApplicationsContent() {
   const router = useRouter();
-  const { data: applications, loading } = useApplications();
+  const { data: applications, loading } = useEmployerApplications();
   
   const stats = {
     total: applications?.length || 0,

@@ -95,6 +95,7 @@ export const internshipsApi = {
 export const applicationsApi = {
     create: (data: any) => apiClient.post('/applications', data),
     getMyApplications: () => apiClient.get('/applications/my-applications'),
+    getEmployerApplications: () => apiClient.get('/applications/employer/my-applications'),
     getOne: (id: string) => apiClient.get(`/applications/${id}`),
     getInternshipApplications: (internshipId: string) =>
         apiClient.get(`/applications/internship/${internshipId}`),
