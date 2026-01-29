@@ -36,10 +36,10 @@ export function useEmployerInternships() {
         fetchInternships();
     }, []);
 
-    return { 
-        data, 
-        loading, 
-        error, 
-        refetch: fetchInternships 
+    return {
+        data,
+        loading,
+        error,
+        refetch: fetchInternships
     };
 }
