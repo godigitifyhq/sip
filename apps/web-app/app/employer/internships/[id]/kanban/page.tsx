@@ -59,7 +59,11 @@ function KanbanBoardContent() {
       ]);
       
       setInternship(internshipRes.data);
-      setApplications(applicationsRes.data);
+      
+      // Handle both direct array and paginated responses
+      const appData = applicationsRes.data;
+      const resultData = Array.isArray(appData) ? appData : (appData?.data || appData?.items || []);
+      setApplications(resultData);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load data');
     } finally {

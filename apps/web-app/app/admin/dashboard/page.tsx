@@ -49,10 +49,11 @@ function DashboardContent() {
         apiClient.get('/admin/kyc').catch(() => ({ data: [] })),
       ]);
 
-      const users = usersRes.data || [];
-      const internships = internshipsRes.data || [];
-      const applications = applicationsRes.data || [];
-      const kycData = kycRes.data || [];
+      // Handle both direct array and paginated responses
+      const users = Array.isArray(usersRes.data) ? usersRes.data : (usersRes.data?.data || usersRes.data?.items || []);
+      const internships = Array.isArray(internshipsRes.data) ? internshipsRes.data : (internshipsRes.data?.data || internshipsRes.data?.items || []);
+      const applications = Array.isArray(applicationsRes.data) ? applicationsRes.data : (applicationsRes.data?.data || applicationsRes.data?.items || []);
+      const kycData = Array.isArray(kycRes.data) ? kycRes.data : (kycRes.data?.data || kycRes.data?.items || []);
 
       setStats({
         totalUsers: users.length,

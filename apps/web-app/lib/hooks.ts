@@ -37,6 +37,7 @@ export function useInternships(filters?: {
     location?: string;
     minStipend?: number;
     maxStipend?: number;
+    limit?: number;
 }) {
     const [internships, setInternships] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -51,12 +52,17 @@ export function useInternships(filters?: {
             if (filters?.location) params.append('location', filters.location);
             if (filters?.minStipend) params.append('minStipend', filters.minStipend.toString());
             if (filters?.maxStipend) params.append('maxStipend', filters.maxStipend.toString());
+            if (filters?.limit) params.append('limit', filters.limit.toString());
 
             const response = await apiClient.get(`/internships?${params.toString()}`);
-            setInternships(response.data);
+            // Handle both direct array and paginated responses
+            const data = response.data;
+            const resultData = Array.isArray(data) ? data : (data?.data || data?.items || []);
+            setInternships(resultData);
             setError(null);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to fetch internships');
+            setInternships([]);
         } finally {
             setLoading(false);
         }
@@ -66,7 +72,7 @@ export function useInternships(filters?: {
         fetchInternships();
     }, [JSON.stringify(filters)]);
 
-    return { internships, loading, error, refetch: fetchInternships };
+    return { data: internships, internships, loading, error, refetch: fetchInternships };
 }
 
 // Re-export employer-specific hook
@@ -83,10 +89,14 @@ export function useApplications() {
         setLoading(true);
         try {
             const response = await apiClient.get('/applications/my-applications');
-            setApplications(response.data);
+            // Handle both direct array and paginated responses
+            const data = response.data;
+            const resultData = Array.isArray(data) ? data : (data?.data || data?.items || []);
+            setApplications(resultData);
             setError(null);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to fetch applications');
+            setApplications([]);
         } finally {
             setLoading(false);
         }
@@ -122,10 +132,14 @@ export function useEmployerApplications() {
         setLoading(true);
         try {
             const response = await apiClient.get('/applications/employer/my-applications');
-            setApplications(response.data);
+            // Handle both direct array and paginated responses
+            const data = response.data;
+            const resultData = Array.isArray(data) ? data : (data?.data || data?.items || []);
+            setApplications(resultData);
             setError(null);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to fetch applications');
+            setApplications([]);
         } finally {
             setLoading(false);
         }
@@ -161,9 +175,12 @@ export function useMessages(otherUserId?: string) {
     const fetchConversations = async () => {
         try {
             const response = await apiClient.get('/messages/conversations');
-            setConversations(response.data);
+            const data = response.data;
+            const resultData = Array.isArray(data) ? data : (data?.data || data?.items || []);
+            setConversations(resultData);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to fetch conversations');
+            setConversations([]);
         }
     };
 
@@ -172,10 +189,13 @@ export function useMessages(otherUserId?: string) {
         setLoading(true);
         try {
             const response = await apiClient.get(`/messages/conversation/${otherUserId}`);
-            setMessages(response.data);
+            const data = response.data;
+            const resultData = Array.isArray(data) ? data : (data?.data || data?.items || []);
+            setMessages(resultData);
             setError(null);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to fetch messages');
+            setMessages([]);
         } finally {
             setLoading(false);
         }
@@ -239,11 +259,14 @@ export function useNotifications() {
                 apiClient.get('/notifications'),
                 apiClient.get('/notifications/unread-count'),
             ]);
-            setNotifications(notifResponse.data);
-            setUnreadCount(countResponse.data.count);
+            const data = notifResponse.data;
+            const resultData = Array.isArray(data) ? data : (data?.data || data?.items || []);
+            setNotifications(resultData);
+            setUnreadCount(countResponse.data?.count || 0);
             setError(null);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to fetch notifications');
+            setNotifications([]);
         } finally {
             setLoading(false);
         }
@@ -308,10 +331,13 @@ export function useKYC() {
         setLoading(true);
         try {
             const response = await apiClient.get('/kyc/my-documents');
-            setDocuments(response.data);
+            const data = response.data;
+            const resultData = Array.isArray(data) ? data : (data?.data || data?.items || []);
+            setDocuments(resultData);
             setError(null);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to fetch KYC documents');
+            setDocuments([]);
         } finally {
             setLoading(false);
         }
@@ -348,10 +374,13 @@ export function useMilestones(applicationId?: string) {
         setLoading(true);
         try {
             const response = await apiClient.get(`/escrow/milestones/${applicationId}`);
-            setMilestones(response.data);
+            const data = response.data;
+            const resultData = Array.isArray(data) ? data : (data?.data || data?.items || []);
+            setMilestones(resultData);
             setError(null);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to fetch milestones');
+            setMilestones([]);
         } finally {
             setLoading(false);
         }

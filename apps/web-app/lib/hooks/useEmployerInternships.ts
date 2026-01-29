@@ -19,7 +19,10 @@ export function useEmployerInternships() {
         setLoading(true);
         try {
             const response = await internshipsApi.getMyInternships();
-            setData(response.data || []);
+            // Handle both direct array and paginated responses
+            const data = response.data;
+            const resultData = Array.isArray(data) ? data : (data?.data || data?.items || []);
+            setData(resultData);
             setError(null);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to fetch your internships');

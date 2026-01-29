@@ -63,12 +63,13 @@ function StudentProfileContent() {
     setSuccessMessage('');
 
     try {
-      await apiClient.patch('/users/me', { studentProfile: profile });
+      // Use the specific student profile endpoint
+      await apiClient.put('/users/profile/student', profile);
       setSuccessMessage('Profile updated successfully!');
       await refreshUser();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update profile:', error);
-      alert('Failed to update profile');
+      alert(error.response?.data?.message || 'Failed to update profile');
     } finally {
       setSaving(false);
     }

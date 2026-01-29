@@ -75,20 +75,26 @@ export default function MessagesPage() {
   const loadConversations = async () => {
     try {
       const { data } = await apiClient.get('/messages/conversations');
-      setConversations(data);
+      // Handle both direct array and paginated responses
+      const resultData = Array.isArray(data) ? data : (data?.data || data?.items || []);
+      setConversations(resultData);
     } catch (error) {
       console.error('Failed to load conversations:', error);
+      setConversations([]);
     }
   };
 
   const loadMessages = async (userId: string) => {
     try {
       setLoading(true);
-      const { data } = await apiClient.get(`/messages/${userId}`);
-      setMessages(data);
+      const { data } = await apiClient.get(`/messages/conversation/${userId}`);
+      // Handle both direct array and paginated responses
+      const resultData = Array.isArray(data) ? data : (data?.data || data?.items || []);
+      setMessages(resultData);
       scrollToBottom();
     } catch (error) {
       console.error('Failed to load messages:', error);
+      setMessages([]);
     } finally {
       setLoading(false);
     }
@@ -104,7 +110,7 @@ export default function MessagesPage() {
 
     setSending(true);
     try {
-      const { data } = await apiClient.post('/messages', {
+      const { data } = await apiClient.post('/messages/send', {
         receiverId: selectedConversation,
         content: newMessage.trim(),
       });

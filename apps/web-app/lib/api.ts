@@ -76,6 +76,9 @@ export const authApi = {
 export const usersApi = {
     getProfile: () => apiClient.get('/users/me'),
     updateProfile: (data: any) => apiClient.patch('/users/me', data),
+    updateStudentProfile: (data: any) => apiClient.put('/users/profile/student', data),
+    updateEmployerProfile: (data: any) => apiClient.put('/users/profile/employer', data),
+    getAll: () => apiClient.get('/users'),
 };
 
 // Internships API
@@ -168,12 +171,15 @@ export const auditApi = {
 export const adminApi = {
     users: {
         getAll: (params?: any) => apiClient.get('/admin/users', { params }),
+        create: (data: any) => apiClient.post('/admin/users', data),
+        update: (id: string, data: any) => apiClient.put(`/admin/users/${id}`, data),
         suspend: (id: string) => apiClient.put(`/admin/users/${id}/suspend`),
         activate: (id: string) => apiClient.put(`/admin/users/${id}/activate`),
         delete: (id: string) => apiClient.delete(`/admin/users/${id}`),
     },
     internships: {
         getAll: (params?: any) => apiClient.get('/admin/internships', { params }),
+        delete: (id: string) => apiClient.delete(`/admin/internships/${id}`),
     },
     applications: {
         getAll: (params?: any) => apiClient.get('/admin/applications', { params }),
@@ -181,6 +187,9 @@ export const adminApi = {
     kyc: {
         getAll: (params?: any) => apiClient.get('/admin/kyc', { params }),
         review: (id: string, data: any) => apiClient.put(`/kyc/review/${id}`, data),
+    },
+    stats: {
+        getAll: () => apiClient.get('/admin/stats'),
     },
 };
 
