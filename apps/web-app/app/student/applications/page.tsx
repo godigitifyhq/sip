@@ -77,15 +77,27 @@ function TrackApplicationsContent() {
     WITHDRAWN: 'bg-gray-100 text-gray-800',
   };
 
+  const statusBorders: Record<string, string> = {
+    PENDING: 'border-l-yellow-400',
+    UNDER_REVIEW: 'border-l-blue-500',
+    SHORTLISTED: 'border-l-purple-500',
+    ACCEPTED: 'border-l-green-500',
+    REJECTED: 'border-l-red-500',
+    WITHDRAWN: 'border-l-gray-400',
+  };
+
   return (
-    <div className="min-h-screen bg-[var(--background)]">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50/40 via-white to-slate-50">
       {/* Header */}
-      <header className="bg-white border-b border-[var(--border)]">
-        <div className="container-custom py-4">
+      <header className="relative bg-white/90 backdrop-blur py-5 border-b border-[var(--border)]">
+        <div className="container-custom py-5 md:py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-[var(--primary)]">Track Applications</h1>
-              <p className="text-sm text-[var(--text-secondary)]">Monitor your application status</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-[var(--primary)]">Track Applications</h1>
+              <p className="text-sm text-[var(--text-secondary)]">Monitor your application status and next steps</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {statusCounts.total} total • {statusCounts.accepted} accepted • {statusCounts.underReview} in review
+              </p>
             </div>
             <Link href="/student/dashboard">
               <Button variant="outline" size="sm">← Back to Dashboard</Button>
@@ -94,59 +106,81 @@ function TrackApplicationsContent() {
         </div>
       </header>
 
-      <div className="container-custom py-8">
+      <div className="container-custom py-20 md:py-10 !mt-10">
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-7 gap-4 mb-6">
-          <Card className={`cursor-pointer transition ${filter === 'all' ? 'ring-2 ring-blue-600' : 'hover:shadow-md'}`}>
-            <div className="p-4" onClick={() => setFilter('all')}>
-              <p className="text-sm text-gray-600">Total</p>
-              <p className="text-2xl font-bold text-blue-600">{statusCounts.total}</p>
+        <div className="relative z-10 grid grid-cols-2 md:grid-cols-7 gap-4 mb-8">
+          <Card className={`cursor-pointer transition border border-gray-100 bg-white/90 shadow-sm ${filter === 'all' ? 'ring-2 ring-blue-500 ring-offset-2' : 'hover:shadow-md'}`}>
+            <div className="p-4 flex items-center justify-between" onClick={() => setFilter('all')}>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-gray-500">Total</p>
+                <p className="text-2xl font-bold text-blue-600">{statusCounts.total}</p>
+              </div>
+              <div className="text-2xl">📦</div>
             </div>
           </Card>
-          <Card className={`cursor-pointer transition ${filter === 'PENDING' ? 'ring-2 ring-yellow-600' : 'hover:shadow-md'}`}>
-            <div className="p-4" onClick={() => setFilter('PENDING')}>
-              <p className="text-sm text-gray-600">Pending</p>
-              <p className="text-2xl font-bold text-yellow-600">{statusCounts.pending}</p>
+          <Card className={`cursor-pointer transition border border-gray-100 bg-white/90 shadow-sm ${filter === 'PENDING' ? 'ring-2 ring-yellow-500 ring-offset-2' : 'hover:shadow-md'}`}>
+            <div className="p-4 flex items-center justify-between" onClick={() => setFilter('PENDING')}>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-gray-500">Pending</p>
+                <p className="text-2xl font-bold text-yellow-600">{statusCounts.pending}</p>
+              </div>
+              <div className="text-2xl">⏳</div>
             </div>
           </Card>
-          <Card className={`cursor-pointer transition ${filter === 'UNDER_REVIEW' ? 'ring-2 ring-blue-600' : 'hover:shadow-md'}`}>
-            <div className="p-4" onClick={() => setFilter('UNDER_REVIEW')}>
-              <p className="text-sm text-gray-600">Under Review</p>
-              <p className="text-2xl font-bold text-blue-600">{statusCounts.underReview}</p>
+          <Card className={`cursor-pointer transition border border-gray-100 bg-white/90 shadow-sm ${filter === 'UNDER_REVIEW' ? 'ring-2 ring-blue-500 ring-offset-2' : 'hover:shadow-md'}`}>
+            <div className="p-4 flex items-center justify-between" onClick={() => setFilter('UNDER_REVIEW')}>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-gray-500">Under Review</p>
+                <p className="text-2xl font-bold text-blue-600">{statusCounts.underReview}</p>
+              </div>
+              <div className="text-2xl">🔎</div>
             </div>
           </Card>
-          <Card className={`cursor-pointer transition ${filter === 'SHORTLISTED' ? 'ring-2 ring-purple-600' : 'hover:shadow-md'}`}>
-            <div className="p-4" onClick={() => setFilter('SHORTLISTED')}>
-              <p className="text-sm text-gray-600">Shortlisted</p>
-              <p className="text-2xl font-bold text-purple-600">{statusCounts.shortlisted}</p>
+          <Card className={`cursor-pointer transition border border-gray-100 bg-white/90 shadow-sm ${filter === 'SHORTLISTED' ? 'ring-2 ring-purple-500 ring-offset-2' : 'hover:shadow-md'}`}>
+            <div className="p-4 flex items-center justify-between" onClick={() => setFilter('SHORTLISTED')}>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-gray-500">Shortlisted</p>
+                <p className="text-2xl font-bold text-purple-600">{statusCounts.shortlisted}</p>
+              </div>
+              <div className="text-2xl">✨</div>
             </div>
           </Card>
-          <Card className={`cursor-pointer transition ${filter === 'ACCEPTED' ? 'ring-2 ring-green-600' : 'hover:shadow-md'}`}>
-            <div className="p-4" onClick={() => setFilter('ACCEPTED')}>
-              <p className="text-sm text-gray-600">Accepted</p>
-              <p className="text-2xl font-bold text-green-600">{statusCounts.accepted}</p>
+          <Card className={`cursor-pointer transition border border-gray-100 bg-white/90 shadow-sm ${filter === 'ACCEPTED' ? 'ring-2 ring-green-500 ring-offset-2' : 'hover:shadow-md'}`}>
+            <div className="p-4 flex items-center justify-between" onClick={() => setFilter('ACCEPTED')}>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-gray-500">Accepted</p>
+                <p className="text-2xl font-bold text-green-600">{statusCounts.accepted}</p>
+              </div>
+              <div className="text-2xl">✅</div>
             </div>
           </Card>
-          <Card className={`cursor-pointer transition ${filter === 'REJECTED' ? 'ring-2 ring-red-600' : 'hover:shadow-md'}`}>
-            <div className="p-4" onClick={() => setFilter('REJECTED')}>
-              <p className="text-sm text-gray-600">Rejected</p>
-              <p className="text-2xl font-bold text-red-600">{statusCounts.rejected}</p>
+          <Card className={`cursor-pointer transition border border-gray-100 bg-white/90 shadow-sm ${filter === 'REJECTED' ? 'ring-2 ring-red-500 ring-offset-2' : 'hover:shadow-md'}`}>
+            <div className="p-4 flex items-center justify-between" onClick={() => setFilter('REJECTED')}>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-gray-500">Rejected</p>
+                <p className="text-2xl font-bold text-red-600">{statusCounts.rejected}</p>
+              </div>
+              <div className="text-2xl">❌</div>
             </div>
           </Card>
-          <Card className={`cursor-pointer transition ${filter === 'WITHDRAWN' ? 'ring-2 ring-gray-600' : 'hover:shadow-md'}`}>
-            <div className="p-4" onClick={() => setFilter('WITHDRAWN')}>
-              <p className="text-sm text-gray-600">Withdrawn</p>
-              <p className="text-2xl font-bold text-gray-600">{statusCounts.withdrawn}</p>
+          <Card className={`cursor-pointer transition border border-gray-100 bg-white/90 shadow-sm ${filter === 'WITHDRAWN' ? 'ring-2 ring-gray-500 ring-offset-2' : 'hover:shadow-md'}`}>
+            <div className="p-4 flex items-center justify-between" onClick={() => setFilter('WITHDRAWN')}>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-gray-500">Withdrawn</p>
+                <p className="text-2xl font-bold text-gray-600">{statusCounts.withdrawn}</p>
+              </div>
+              <div className="text-2xl">↩️</div>
             </div>
           </Card>
         </div>
 
         {/* Applications List */}
-        <Card>
-          <div className="p-6 border-b border-gray-200">
+        <Card className="relative z-0 bg-white/95 border border-gray-100 shadow-sm">
+          <div className="p-6 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-xl font-semibold text-gray-900">
               {filter === 'all' ? 'All Applications' : `${filter.replace('_', ' ')} Applications`}
             </h2>
+            <span className="text-sm text-gray-500">{filteredApplications.length} items</span>
           </div>
           <div className="p-6">
             {loading ? (
@@ -154,15 +188,15 @@ function TrackApplicationsContent() {
                 <LoadingSpinner />
               </div>
             ) : filteredApplications.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {filteredApplications.map((app: any) => (
                   <div
                     key={app.id}
-                    className="p-4 rounded-lg border border-gray-200 hover:border-blue-600 hover:shadow-md transition"
+                    className={`p-5 rounded-xl border border-gray-100 border-l-4 ${statusBorders[app.status] || 'border-l-gray-300'} bg-white hover:border-blue-200 hover:shadow-lg transition`}
                   >
-                    <div className="flex justify-between items-start mb-3">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-4">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-blue-600 mb-1 text-lg">
+                        <h4 className="font-semibold text-blue-700 mb-1 text-lg">
                           {app.internship?.title}
                         </h4>
                         <p className="text-sm text-gray-600">
@@ -174,11 +208,11 @@ function TrackApplicationsContent() {
                       </Badge>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm text-gray-600 mb-3">
-                      <span>📍 {app.internship?.location}</span>
-                      <span>💰 {app.internship?.stipend ? `₹${app.internship.stipend.toLocaleString()}/mo` : 'Unpaid'}</span>
-                      <span>📅 Applied: {new Date(app.appliedAt).toLocaleDateString()}</span>
-                      <span>🔄 Updated: {new Date(app.updatedAt).toLocaleDateString()}</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm text-gray-600 mb-4">
+                      <span className="inline-flex items-center gap-2">📍 <span>{app.internship?.location || 'Remote'}</span></span>
+                      <span className="inline-flex items-center gap-2">💰 <span>{app.internship?.stipend ? `₹${app.internship.stipend.toLocaleString()}/mo` : 'Unpaid'}</span></span>
+                      <span className="inline-flex items-center gap-2">📅 <span>Applied {new Date(app.appliedAt).toLocaleDateString()}</span></span>
+                      <span className="inline-flex items-center gap-2">🔄 <span>Updated {new Date(app.updatedAt).toLocaleDateString()}</span></span>
                     </div>
 
                     {app.coverLetter && (
@@ -187,14 +221,15 @@ function TrackApplicationsContent() {
                       </p>
                     )}
 
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Link href={`/student/applications/${app.id}`}>
-                        <Button variant="outline">View Details</Button>
+                        <Button variant="outline" size="sm">View Details</Button>
                       </Link>
                       {(app.status === 'PENDING' || app.status === 'UNDER_REVIEW') && (
                         <Button 
                           onClick={() => handleWithdrawClick(app)}
                           variant="outline"
+                          size="sm"
                           className="border-red-600 text-red-600 hover:bg-red-50"
                         >
                           Withdraw
@@ -202,7 +237,7 @@ function TrackApplicationsContent() {
                       )}
                       {app.status === 'ACCEPTED' && (
                         <Link href={`/student/internships/${app.internshipId}/milestones`}>
-                          <Button className="bg-blue-600 hover:bg-blue-700">View Milestones</Button>
+                          <Button size="sm" className="bg-blue-600 hover:bg-blue-700">View Milestones</Button>
                         </Link>
                       )}
                     </div>
