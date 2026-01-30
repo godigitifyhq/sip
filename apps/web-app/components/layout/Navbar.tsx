@@ -25,34 +25,6 @@ export function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Get breadcrumb from path
-  const getBreadcrumb = () => {
-    const paths = pathname.split('/').filter(Boolean);
-    if (paths.length === 0) return 'Home';
-    
-    const roleMap: Record<string, string> = {
-      student: 'Student',
-      employer: 'Employer',
-      admin: 'Admin',
-    };
-    
-    const pageMap: Record<string, string> = {
-      dashboard: 'Dashboard',
-      internships: 'Internships',
-      applications: 'Applications',
-      messages: 'Messages',
-      notifications: 'Notifications',
-      profile: 'Profile',
-      analytics: 'Analytics',
-      kanban: 'Kanban Board',
-      users: 'Users',
-      kyc: 'KYC',
-      audit: 'Audit Logs',
-    };
-    
-    return paths.map(p => roleMap[p] || pageMap[p] || p.charAt(0).toUpperCase() + p.slice(1)).join(' / ');
-  };
-
   const getMessagesLink = () => {
     if (user?.role === 'ADMIN') return '/admin/dashboard';
     if (user?.role === 'EMPLOYER') return '/employer/messages';
@@ -91,11 +63,6 @@ export function Navbar() {
               </div>
               <span className="hidden sm:block font-semibold text-gray-900">Smart Internship Platform</span>
             </Link>
-            
-            <div className="hidden md:flex items-center gap-2 text-sm text-gray-600">
-              <span>/</span>
-              <span>{getBreadcrumb()}</span>
-            </div>
           </div>
 
           {/* Center: Search */}

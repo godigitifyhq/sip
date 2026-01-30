@@ -129,10 +129,14 @@ model StudentProfile {
   id             String   @id @default(uuid())
   userId         String   @unique @map("user_id")
   fullName       String   @map("full_name")
+  phone          String?
+  dateOfBirth    DateTime? @map("date_of_birth")
   collegeName    String   @map("college_name")
   collegeEmail   String?  @map("college_email")
   degree         String
+  major          String?
   graduationYear Int      @map("graduation_year")
+  cgpa           String?
   skills         String[]
   resume         String?
   portfolio      String?

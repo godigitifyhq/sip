@@ -25,6 +25,18 @@ export class UsersService {
             throw new NotFoundException('User not found');
         }
 
+        if (!user.kycStatus) {
+            const latestKyc = await this.prisma.kYCDocument.findFirst({
+                where: { userId: id },
+                orderBy: { createdAt: 'desc' },
+                select: { status: true },
+            });
+
+            if (latestKyc?.status) {
+                return { ...user, kycStatus: latestKyc.status };
+            }
+        }
+
         return user;
     }
 

@@ -72,6 +72,7 @@ export class AuthService {
                 email: user.email,
                 role: user.role,
                 status: user.status,
+                kycStatus: user.kycStatus || null,
             },
             ...tokens,
         };
@@ -94,6 +95,7 @@ export class AuthService {
                 email: user.email,
                 role: user.role,
                 status: user.status,
+                kycStatus: user.kycStatus || null,
             },
             ...tokens,
         };

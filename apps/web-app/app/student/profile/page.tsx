@@ -38,16 +38,17 @@ function StudentProfileContent() {
         fullName: '',
         phone: '',
         dateOfBirth: '',
-        college: '',
+        collegeName: '',
+        collegeEmail: '',
         degree: '',
         major: '',
-        graduationYear: '',
+        graduationYear: new Date().getFullYear() + 4,
         cgpa: '',
         skills: [],
         bio: '',
         resume: '',
-        linkedin: '',
-        github: '',
+        linkedinUrl: '',
+        githubUrl: '',
         portfolio: '',
       });
     } catch (error) {
@@ -63,8 +64,8 @@ function StudentProfileContent() {
     setSuccessMessage('');
 
     try {
-      // Use the specific student profile endpoint
-      await apiClient.put('/users/profile/student', profile);
+      // Update student profile through the /users/me endpoint
+      await apiClient.patch('/users/me', { studentProfile: profile });
       setSuccessMessage('Profile updated successfully!');
       await refreshUser();
     } catch (error: any) {
@@ -159,8 +160,8 @@ function StudentProfileContent() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     label="College/University"
-                    value={profile.college}
-                    onChange={(e) => setProfile({ ...profile, college: e.target.value })}
+                    value={profile.collegeName}
+                    onChange={(e) => setProfile({ ...profile, collegeName: e.target.value })}
                   />
                   <Input
                     label="Degree"
@@ -212,14 +213,14 @@ function StudentProfileContent() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Input
                     label="LinkedIn"
-                    value={profile.linkedin}
-                    onChange={(e) => setProfile({ ...profile, linkedin: e.target.value })}
+                    value={profile.linkedinUrl}
+                    onChange={(e) => setProfile({ ...profile, linkedinUrl: e.target.value })}
                     placeholder="linkedin.com/in/..."
                   />
                   <Input
                     label="GitHub"
-                    value={profile.github}
-                    onChange={(e) => setProfile({ ...profile, github: e.target.value })}
+                    value={profile.githubUrl}
+                    onChange={(e) => setProfile({ ...profile, githubUrl: e.target.value })}
                     placeholder="github.com/..."
                   />
                   <Input

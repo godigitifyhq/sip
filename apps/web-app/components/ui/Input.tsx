@@ -11,8 +11,8 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
     ({ label, error, helperText, leftIcon, rightIcon, className, value, ...props }, ref) => {
-        // Convert null to empty string to prevent React warning
-        const safeValue = value === null ? '' : value;
+        // Convert null/undefined to empty string to prevent React warning about controlled/uncontrolled
+        const safeValue = value == null ? '' : value;
         
         return (
             <div className="w-full">

@@ -158,12 +158,16 @@ export class ApplicationsService {
 
         // Send notification if interview is scheduled
         if (status === 'INTERVIEW_SCHEDULED' && interviewDate) {
+            const companyName =
+                application.internship.employer.employerProfile?.companyName ||
+                'Company';
+
             await this.prisma.notification.create({
                 data: {
                     userId: application.studentId,
                     type: 'APPLICATION_STATUS',
                     title: 'Interview Scheduled',
-                    message: `Your interview for ${application.internship.title} at ${application.internship.employer.employerProfile.companyName} has been scheduled for ${new Date(interviewDate).toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' })}.${interviewNotes ? ` Notes: ${interviewNotes}` : ''}`,
+                    message: `Your interview for ${application.internship.title} at ${companyName} has been scheduled for ${new Date(interviewDate).toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' })}.${interviewNotes ? ` Notes: ${interviewNotes}` : ''}`,
                     link: `/student/applications/${application.id}`,
                 },
             });

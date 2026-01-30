@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/Loading';
 import { Alert } from '@/components/ui/Alert';
 import { Modal } from '@/components/ui/Modal';
+import { KanbanBoard } from '@/components/KanbanBoard';
 import Link from 'next/link';
 import { RouteGuard } from '@/components/RouteGuard';
 import { internshipsApi, applicationsApi } from '@/lib/api';
@@ -55,6 +56,7 @@ function InternshipDetailContent() {
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [interviewDate, setInterviewDate] = useState('');
   const [interviewNotes, setInterviewNotes] = useState('');
+  const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
   
   // Bulk actions state
   const [selectedApplications, setSelectedApplications] = useState<Set<string>>(new Set());
@@ -297,6 +299,55 @@ function InternshipDetailContent() {
     if (status === 'DRAFT') return 'warning';
     if (status === 'CLOSED') return 'default';
     return 'default';
+  };
+
+  const buildKanbanColumns = () => {
+    const statuses = [
+      { id: 'SUBMITTED', title: 'New', color: 'blue', statuses: ['SUBMITTED', 'UNDER_REVIEW'] },
+      { id: 'SHORTLISTED', title: 'Shortlisted', color: 'purple', statuses: ['SHORTLISTED'] },
+      { id: 'INTERVIEW_SCHEDULED', title: 'Interview', color: 'yellow', statuses: ['INTERVIEW_SCHEDULED'] },
+      { id: 'ACCEPTED', title: 'Accepted', color: 'green', statuses: ['ACCEPTED'] },
+      { id: 'REJECTED', title: 'Rejected', color: 'red', statuses: ['REJECTED', 'WITHDRAWN'] },
+    ];
+
+    return statuses.map(status => {
+      const items = applications
+        .filter(app => status.statuses.includes(app.status))
+        .map(app => ({
+          id: app.id,
+          title: app.student?.studentProfile?.fullName || app.student?.email || 'Student',
+          subtitle: app.student?.email,
+          description: app.student?.studentProfile?.bio?.substring(0, 60) || 'No bio provided',
+          badge: {
+            label: Math.round(app.aiMatchScore || 0) + '%',
+            color: (app.aiMatchScore || 0) > 70 ? 'green' : (app.aiMatchScore || 0) > 50 ? 'yellow' : 'red',
+          },
+          meta: new Date(app.appliedAt).toLocaleDateString('en-IN', {
+            day: 'numeric',
+            month: 'short',
+          }),
+        }));
+
+      return {
+        id: status.id,
+        title: status.title,
+        color: status.color,
+        count: items.length,
+        items,
+      };
+    });
+  };
+
+  const handleKanbanCardClick = (item: any, columnId: string) => {
+    const app = applications.find(a => a.id === item.id);
+    if (app) {
+      setSelectedApplication(app);
+      // Determine which modal to open based on current status
+      if (app.status === 'ACCEPTED' || app.status === 'REJECTED' || app.status === 'WITHDRAWN') {
+        // Just show the application details (could open a detail modal)
+        console.log('View application:', app);
+      }
+    }
   };
 
   if (loading) {
@@ -669,82 +720,122 @@ function InternshipDetailContent() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Applications Pipeline</CardTitle>
-                <Badge variant="info">{applications.length} Total</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant="info">{applications.length} Total</Badge>
+                  <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+                    <button
+                      onClick={() => setViewMode('kanban')}
+                      className={`px-3 py-1.5 rounded text-sm font-medium transition ${
+                        viewMode === 'kanban'
+                          ? 'bg-white text-blue-600 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      📊 Kanban
+                    </button>
+                    <button
+                      onClick={() => setViewMode('table')}
+                      className={`px-3 py-1.5 rounded text-sm font-medium transition ${
+                        viewMode === 'table'
+                          ? 'bg-white text-blue-600 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      📋 Table
+                    </button>
+                  </div>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
-              {/* Status Filter Tabs */}
-              <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-                {[
-                  { key: 'ALL', label: 'All', count: applications.length },
-                  { key: 'SUBMITTED', label: 'Submitted', count: applications.filter(a => a.status === 'SUBMITTED' || a.status === 'UNDER_REVIEW').length },
-                  { key: 'SHORTLISTED', label: 'Shortlisted', count: applications.filter(a => a.status === 'SHORTLISTED').length },
-                  { key: 'INTERVIEW', label: 'Interview', count: applications.filter(a => a.status === 'INTERVIEW_SCHEDULED').length },
-                  { key: 'ACCEPTED', label: 'Accepted', count: applications.filter(a => a.status === 'ACCEPTED').length },
-                  { key: 'REJECTED', label: 'Rejected', count: applications.filter(a => a.status === 'REJECTED' || a.status === 'WITHDRAWN').length },
-                ].map(tab => (
-                  <button
-                    key={tab.key}
-                    onClick={() => setStatusFilter(tab.key)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
-                      statusFilter === tab.key
-                        ? 'bg-[var(--primary)] text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {tab.label} ({tab.count})
-                  </button>
-                ))}
-              </div>
-
-              {/* Bulk Actions Bar */}
-              {selectedApplications.size > 0 && (
-                <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="font-medium text-blue-900">
-                        {selectedApplications.size} selected
-                      </span>
-                      <button
-                        onClick={() => setSelectedApplications(new Set())}
-                        className="text-sm text-blue-600 hover:text-blue-800"
-                      >
-                        Clear selection
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        onClick={() => handleBulkAction('SHORTLISTED')}
-                        disabled={bulkActionLoading}
-                        variant="outline"
-                        size="sm"
-                        className="border-purple-600 text-purple-600 hover:bg-purple-50"
-                      >
-                        Shortlist
-                      </Button>
-                      <Button
-                        onClick={() => handleBulkAction('REJECTED')}
-                        disabled={bulkActionLoading}
-                        variant="outline"
-                        size="sm"
-                        className="border-red-600 text-red-600 hover:bg-red-50"
-                      >
-                        Reject
-                      </Button>
-                      {bulkActionLoading && <LoadingSpinner size="sm" />}
-                    </div>
-                  </div>
+              {/* Kanban View */}
+              {viewMode === 'kanban' && !applicationsLoading && (
+                <div className="h-[600px] -mx-6 -mb-6">
+                  <KanbanBoard
+                    columns={buildKanbanColumns()}
+                    onItemClick={handleKanbanCardClick}
+                    defaultColumnWidth={320}
+                    minColumnWidth={280}
+                    internshipId={id}
+                  />
                 </div>
               )}
 
-              {/* Applications Table */}
-              {applicationsLoading ? (
-                <div className="flex justify-center py-12">
-                  <LoadingSpinner />
-                </div>
-              ) : filteredApplications.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
+              {/* Table View */}
+              {viewMode === 'table' && (
+                <>
+                  {/* Status Filter Tabs */}
+                  <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+                    {[
+                      { key: 'ALL', label: 'All', count: applications.length },
+                      { key: 'SUBMITTED', label: 'Submitted', count: applications.filter(a => a.status === 'SUBMITTED' || a.status === 'UNDER_REVIEW').length },
+                      { key: 'SHORTLISTED', label: 'Shortlisted', count: applications.filter(a => a.status === 'SHORTLISTED').length },
+                      { key: 'INTERVIEW', label: 'Interview', count: applications.filter(a => a.status === 'INTERVIEW_SCHEDULED').length },
+                      { key: 'ACCEPTED', label: 'Accepted', count: applications.filter(a => a.status === 'ACCEPTED').length },
+                      { key: 'REJECTED', label: 'Rejected', count: applications.filter(a => a.status === 'REJECTED' || a.status === 'WITHDRAWN').length },
+                    ].map(tab => (
+                      <button
+                        key={tab.key}
+                        onClick={() => setStatusFilter(tab.key)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
+                          statusFilter === tab.key
+                            ? 'bg-[var(--primary)] text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        {tab.label} ({tab.count})
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Bulk Actions Bar */}
+                  {selectedApplications.size > 0 && (
+                    <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="font-medium text-blue-900">
+                            {selectedApplications.size} selected
+                          </span>
+                          <button
+                            onClick={() => setSelectedApplications(new Set())}
+                            className="text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            Clear selection
+                          </button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            onClick={() => handleBulkAction('SHORTLISTED')}
+                            disabled={bulkActionLoading}
+                            variant="outline"
+                            size="sm"
+                            className="border-purple-600 text-purple-600 hover:bg-purple-50"
+                          >
+                            Shortlist
+                          </Button>
+                          <Button
+                            onClick={() => handleBulkAction('REJECTED')}
+                            disabled={bulkActionLoading}
+                            variant="outline"
+                            size="sm"
+                            className="border-red-600 text-red-600 hover:bg-red-50"
+                          >
+                            Reject
+                          </Button>
+                          {bulkActionLoading && <LoadingSpinner size="sm" />}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Applications Table */}
+                  {applicationsLoading ? (
+                    <div className="flex justify-center py-12">
+                      <LoadingSpinner />
+                    </div>
+                  ) : filteredApplications.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
                     <thead className="bg-gray-50 border-b">
                       <tr>
                         <th className="px-4 py-3 text-left">
@@ -898,6 +989,23 @@ function InternshipDetailContent() {
                       ? 'No applications received yet'
                       : `No applications in ${statusFilter.toLowerCase()} status`}
                   </p>
+                </div>
+              )}
+                </>
+              )}
+
+              {/* Loading state */}
+              {applicationsLoading && viewMode === 'kanban' && (
+                <div className="flex justify-center py-12">
+                  <LoadingSpinner />
+                </div>
+              )}
+
+              {/* Empty state for no applications */}
+              {!applicationsLoading && applications.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="text-4xl mb-3">📭</div>
+                  <p className="text-[var(--text-secondary)]">No applications received yet</p>
                 </div>
               )}
             </CardContent>
