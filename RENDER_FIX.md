@@ -56,7 +56,7 @@ Looks for: /opt/render/project/src/apps/api-service/dist/main.js ✅ (exists!)
 
 2. **Build Command** section:
    ```bash
-   npm install --include=dev && npx prisma generate && npm run build
+   npm install --include=dev && npx prisma generate --schema=apps/api-service/prisma/schema.prisma && npm run build --filter=api-service
    ```
 
 3. **Pre-Deploy Command** section (Optional):
@@ -66,7 +66,7 @@ Looks for: /opt/render/project/src/apps/api-service/dist/main.js ✅ (exists!)
 
 4. **Start Command** section:
    ```bash
-   node dist/apps/api-service/src/main.js
+   node apps/api-service/dist/apps/api-service/src/main.js
    ```
 
 5. **Root Directory** section (MOST IMPORTANT):
