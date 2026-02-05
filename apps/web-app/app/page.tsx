@@ -40,9 +40,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-[var(--primary)] flex items-center justify-center">
-                <span className="text-white font-bold text-xl">SIP</span>
-              </div>
+              <img src="/logo-sip.png" alt="SIP Logo" className="h-12 w-auto" />
               <div>
                 <span className="font-bold text-[var(--primary)] text-lg tracking-wide">SMART INTERNSHIP PORTAL</span>
               </div>
@@ -324,9 +322,7 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-[var(--accent)] flex items-center justify-center">
-                  <span className="text-[var(--primary-dark)] font-bold">SIP</span>
-                </div>
+                <img src="/logo-sip.png" alt="SIP Logo" className="h-10 w-auto" />
                 <span className="font-bold text-white">Smart Internship Portal</span>
               </div>
               <p className="text-white/60 text-sm">

@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   description: "Secure, verified internship platform connecting students with trusted employers",
   manifest: "/manifest.json",
   themeColor: "#243447",
+  icons: {
+    icon: "/logo-sip.png",
+    apple: "/logo-sip.png",
+  },
 };
 
 export default function RootLayout({
